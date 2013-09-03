@@ -1,5 +1,6 @@
 package me.bloodarowman.bardlike.gui;
 
+import java.awt.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,11 +9,10 @@ import java.util.Calendar;
 import me.bloodarowman.bardlike.Main;
 import org.keplerproject.luajava.JavaFunction;
 import org.keplerproject.luajava.LuaException;
-import org.newdawn.slick.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
-
 /**
  *
  * @author Alex
@@ -22,12 +22,13 @@ public class Log implements Menu {
 
     static {
         try {
-            LOG_FONT = new UnicodeFont("./gfx/fonts/OldLondon.ttf", (int) Main.scale, false, false);
+            Font fon = Font.createFont(Font.TRUETYPE_FONT, Log.class.getResourceAsStream("/gfx/fonts/OldLondon.ttf")); // This is so we can load the font when it's in a jar
+            LOG_FONT = new UnicodeFont(fon, (int) Main.scale, false, false);
             LOG_FONT.getEffects().add(new ColorEffect(java.awt.Color.white));
             LOG_FONT.addAsciiGlyphs();
             LOG_FONT.loadGlyphs();
-        } catch (SlickException e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
     }
 
@@ -71,9 +72,16 @@ public class Log implements Menu {
 	public boolean isOpen() {
 		return visible;
 	}
+
+    public void append(String str) {
+        lines.add(new Line("[" + dateFormat.format(Calendar.getInstance().getTime()) + "] " + str, LogEffect.FADE_IN));
+        //	curTime = System.currentTimeMillis();
+        //	white = new Color(255, 255, 255, 255);
+        //	black = new Color(0, 0, 0, 255);
+    }
 	
-	public void append(String str) {
-		lines.add(new Line("[" + dateFormat.format(Calendar.getInstance().getTime()) + "] " + str));
+	public void append(String str, LogEffect effect) {
+		lines.add(new Line("[" + dateFormat.format(Calendar.getInstance().getTime()) + "] " + str, effect));
 	//	curTime = System.currentTimeMillis();
 	//	white = new Color(255, 255, 255, 255);
 	//	black = new Color(0, 0, 0, 255);
@@ -97,8 +105,9 @@ public class Log implements Menu {
 		g.setFont(LOG_FONT);
 	
 		int count = 0;
+        int height = 0;
 		for(int i = begin; i < lines.size(); i++) {
-			lines.get(i).render(g, x + 2, y - (count * g.getFont().getHeight(lines.get(i).getStr())) - g.getFont().getHeight(lines.get(i).getStr()));
+			lines.get(i).render(g, x + 2, y - (height += lines.get(i).getHeight()));// - g.getFont().getHeight(lines.get(i).getStr()));
 			count++;
 		}
 	}
@@ -122,13 +131,21 @@ public class Log implements Menu {
 	private class Line {
 		//private ArrayList<Char> str = new ArrayList<Char>();
 		private String str = "";
+        private LogEffect effect;
+        private int loop = 0;
+        private boolean flag = false;
 		private Color white = new Color(255, 255, 255, 0);
 		private Color black = new Color(0, 0, 0, 0);
 		
-		public Line(String str) {
+		public Line(String str, LogEffect effect) {
 			//for (int i = 0; i < str.length(); i++) {
 			//	this.str.add(new Char(str.charAt(i)));
 			//}
+            this.effect = effect;
+            if (effect != LogEffect.FADE_IN) {
+                white.add(new Color(0, 0, 0, 255));
+                black.add(new Color(0, 0, 0, 255));
+            }
 			this.str = str;
 		}
 		
@@ -140,6 +157,10 @@ public class Log implements Menu {
 			//return eStr;
 			return str;
 		}
+
+        public int getHeight() {
+            return !str.trim().equalsIgnoreCase("") ? LOG_FONT.getHeight(str) : 0;
+        }
 		
 		public void render(Graphics g, int x, int y) {
 			//int strLen = 0;
@@ -161,9 +182,34 @@ public class Log implements Menu {
 			//for (int i = 0; i < str.size(); i++) {
 			//	str.get(i).update();
 			//}
-			if (white.getAlpha() >= 255 && black.getAlpha() >= 255) { return; }
-			white.add(new Color(0, 0, 0, 10));
-			black.add(new Color(0, 0, 0, 10));
+            loop++;
+            switch(effect) {
+                case FADE_IN:
+                    if (white.getAlpha() >= 255 && black.getAlpha() >= 255) { return; }
+                    white.add(new Color(0, 0, 0, 10));
+                    black.add(new Color(0, 0, 0, 10));
+                    return;
+                case FADE_OUT:
+                    if (white.getAlpha() <= 0 && black.getAlpha() <= 0) { return; }
+                    white.add(new Color(0, 0, 0, -5));
+                    black.add(new Color(0, 0, 0, -5));
+                    return;
+                case RAINBOW_FLASH:
+                    white = new Color((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
+                    return;
+                case RED_WHITE_FLASH:
+                    white = flag ? new Color(255, 255, 255) : new Color(255, 0, 0);
+                    if (loop >= 30)  { loop = 0; flag = !flag;}
+                    return;
+                case BLUE_WHITE_FLASH:
+                    white = flag ? new Color(255, 255, 255) : new Color(0, 0, 255);
+                    if (loop >= 30)  { loop = 0; flag = !flag;}
+                    return;
+                case GREEN_WHITE_FLASH:
+                    white = flag ? new Color(255, 255, 255) : new Color(0, 255, 0);
+                    if (loop >= 30)  { loop = 0; flag = !flag;}
+                    return;
+            }
 		}
 		/*
 		private class Char {
