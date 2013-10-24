@@ -5,6 +5,8 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.keplerproject.luajava.LuaState;
 import org.keplerproject.luajava.LuaStateFactory;
@@ -20,6 +22,8 @@ import org.newdawn.slick.state.StateBasedGame;
  * @author alex
  */
 public class Main extends StateBasedGame {
+    private static int width, height;
+    
     public Main(String name) {
         super(name);
     }
@@ -36,12 +40,9 @@ public class Main extends StateBasedGame {
 		game = new AppGameContainer(new Main("bardLIKE"));
 		
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		int width = (int) screenSize.getWidth();
-		int height = (int) screenSize.getHeight();
-        width = 1024;
-        height = 768;
+		width = (int) screenSize.getWidth();
+		height = (int) screenSize.getHeight();
 		scale = (width + height) / 110;
-		game.setDisplayMode(width, height, false);
 
 		game.setVSync(true);
 		game.setTargetFrameRate(60);
@@ -54,8 +55,9 @@ public class Main extends StateBasedGame {
 	}
 
 	@Override
-	public void initStatesList(GameContainer arg0) throws SlickException {
+	public void initStatesList(GameContainer gc) throws SlickException {
 		this.addState(new MainMenuState());
+                this.addState(new OptionsMenuState());
 		this.addState(new ClassSelectState());
 		this.addState(new MainGameState());
 		this.addState(new HelpMenuState());
@@ -102,6 +104,14 @@ public class Main extends StateBasedGame {
 
         public LuaState getLuaState() {
             return L;
+        }
+         
+    }
+    public static void setResolution(int w, int h) {
+        try {
+            game.setDisplayMode(w, h, game.isFullscreen());
+        } catch (SlickException ex) {
+            Misc.showDialog(ex);
         }
     }
 }

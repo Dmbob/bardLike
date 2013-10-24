@@ -79,7 +79,9 @@ public class ClassSelectState extends BasicGameState {
 		MainGameState main = (MainGameState) s.getState(4);
 		if (container.getInput().isKeyPressed(Input.KEY_B)) {
 			chosen = 0;
-		} else if(container.getInput().isKeyPressed(Input.KEY_M)) {
+		}else if(container.getInput().isKeyPressed(Input.KEY_ESCAPE)) {
+                    s.enterState(1);
+                }else if(container.getInput().isKeyPressed(Input.KEY_M)) {
 			chosen = 1;
 		} else if(container.getInput().isKeyPressed(Input.KEY_P)) {
 			chosen = 2;

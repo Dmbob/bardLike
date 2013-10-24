@@ -31,7 +31,7 @@ public class GameConfig {
 		BufferedReader reader;
 		String str = "";
 
-		try {
+		try {                   
 			reader = new BufferedReader(new InputStreamReader(is));
 			while (reader.ready()) {
 				str += reader.readLine();
